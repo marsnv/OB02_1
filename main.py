@@ -29,8 +29,8 @@ class ADMINUSER(USER):
         self.users = []
 
     def add_user(self, username, userrights, email):
-        # Проверка на заполненность всех аргументов
-        if not all([username, userrights, email]):
+        # Проверка на заполненность всех аргументов и что они не пустые
+        if not all([username.strip(), userrights.strip(), email.strip()]):
             return {'result': 'error0001', 'user': None}
 
         # Проверка на допустимые значения userrights
@@ -51,8 +51,7 @@ class ADMINUSER(USER):
     def remove_user(self, user):
         # Изменение статуса пользователя на неактивный
         if isinstance(user, USER):
-            user_data = user.get_user()
-            user_data['active'] = False
+            user._USER__active = False
             return {'result': 'done', 'user': user}
         return {'result': 'error0003', 'user': None}
 
@@ -97,6 +96,16 @@ print("Список пользователей:")
 for user in USERS:
     print(user.get_user())
 
+# Попытка добавить пользователя с пустым значением username
+print("\nПопытка добавить пользователя с пустым значением username:")
+result = admin.add_user(username='', userrights='user', email='test@example.com')
+print(result['result'])
+
+# Попытка добавить пользователя с недопустимым значением userrights
+print("\nПопытка добавить пользователя с недопустимым значением userrights:")
+result = admin.add_user(username=username, userrights='user11', email='test@example.com')
+print(result['result'])
+
 # Выполнение метода remove_user с id_user = 11 (если такой пользователь есть)
 print("\nУдаление пользователя с id = 11:")
 find_result = admin._ADMINUSER__find_user(11)
@@ -113,7 +122,8 @@ for user in USERS:
 
 # Выполнение метода remove_user с id_user = id любого пользователя
 if USERS:
-    user_id = USERS[0].get_user()['id']
+    random_index = random.randint(0, 5)
+    user_id = USERS[random_index].get_user()['id']
     print(f"\nУдаление пользователя с id = {user_id}:")
     find_result = admin._ADMINUSER__find_user(user_id)
     if find_result['result'] == 'done':
