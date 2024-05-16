@@ -25,8 +25,7 @@ class USER:
 
 class ADMINUSER(USER):
     def __init__(self):
-        # Список для хранения всех пользователей
-        self.users = []
+        pass
 
     def add_user(self, username, userrights, email):
         # Проверка на заполненность всех аргументов и что они не пустые
@@ -42,29 +41,29 @@ class ADMINUSER(USER):
 
         # Создание экземпляра класса USER
         new_user = USER(id, username, userrights, email)
-
-        # Добавление нового пользователя в список
-        self.users.append(new_user)
-
         return {'result': 'done', 'user': new_user}
 
-    def remove_user(self, user):
+    def remove_user(self, id_user, sp_users):
         # Изменение статуса пользователя на неактивный
-        if isinstance(user, USER):
-            user._USER__active = False
-            return {'result': 'done', 'user': user}
-        return {'result': 'error0003', 'user': None}
+        find_result = self.__find_user(id_user, sp_users)
+        if find_result['result'] == 'done':
+            sp_users[find_result['index_sp_users']]._USER__active = False
+            return {'result': 'done', 'sp_users': sp_users}
+        else:
+            return {'result': 'error0003', 'sp_users': sp_users}
 
     def __gen_id_user(self):
         # Формирование id на основе текущей даты, времени и тысячных долей секунды
         return int(datetime.now().strftime("%Y%m%d%H%M%S%f"))
 
-    def __find_user(self, id_user):
+    def __find_user(self, id_user, sp_users):
         # Поиск пользователя по id
-        for user in self.users:
+        index_sp_users = -1
+        for user in sp_users:
+            index_sp_users += 1
             if user.get_user()['id'] == id_user:
-                return {'result': 'done', 'user': user}
-        return {'result': 'error0003', 'user': None}
+                return {'result': 'done', 'index_sp_users': index_sp_users}
+        return {'result': 'error0003', 'index_sp_users': None}
 
 
 # Демонстрация работы программы
@@ -107,30 +106,24 @@ result = admin.add_user(username=username, userrights='user11', email='test@exam
 print(result['result'])
 
 # Выполнение метода remove_user с id_user = 11 (если такой пользователь есть)
-print("\nУдаление пользователя с id = 11:")
-find_result = admin._ADMINUSER__find_user(11)
-if find_result['result'] == 'done':
-    remove_result = admin.remove_user(find_result['user'])
-    print(remove_result)
-else:
-    print(find_result)
+print("\nВыполнение метода remove_user с id_user = 11")
+remove_result = admin.remove_user(11, USERS)
+USERS = remove_result['sp_users']
+print(remove_result)
 
 # Вывод списка всех пользователей после удаления
-print("\nСписок пользователей после удаления с id = 11:")
+print("\nСписок пользователей после удаления пользователя с id = 11:")
 for user in USERS:
     print(user.get_user())
 
 # Выполнение метода remove_user с id_user = id любого пользователя
 if USERS:
     random_index = random.randint(0, 5)
-    user_id = USERS[random_index].get_user()['id']
-    print(f"\nУдаление пользователя с id = {user_id}:")
-    find_result = admin._ADMINUSER__find_user(user_id)
-    if find_result['result'] == 'done':
-        remove_result = admin.remove_user(find_result['user'])
-        print(remove_result)
-    else:
-        print(find_result)
+    id_user = USERS[random_index].get_user()['id']
+    print(f"\nУдаление пользователя с id = {id_user}:")
+    remove_result = admin.remove_user(id_user, USERS)
+    USERS = remove_result['sp_users']
+    print(remove_result)
 
 # Вывод списка всех пользователей после второго удаления
 print("\nСписок пользователей после второго удаления:")
